@@ -1,13 +1,12 @@
-//Package ncm reads ncm file into memory, and cut it into different parts.
+// Package ncm reads ncm file into memory, and cut it into different parts.
 package ncm
 
 import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
-
-	"github.com/closetool/NCMconverter/path"
 )
 
 const (
@@ -39,21 +38,10 @@ type NcmFile struct {
 // ncmpath point out where the ncm file is.
 func NewNcmFile(ncmpath string) (nf *NcmFile, err error) {
 	nf = new(NcmFile)
-	//if runtime.GOOS == "windows" {
-	//	ncmpath = filepath.Clean(ncmpath)
-	//	nf.FileName = filepath.Base(ncmpath)
-	//	nf.FileDir = filepath.Dir(ncmpath)
-	//	nf.Ext = filepath.Ext(ncmpath)
-	//} else if (runtime.GOOS) == "linux" {
-	//	ncmpath = path.Clean(ncmpath)
-	//	nf.FileName = path.Base(ncmpath)
-	//	nf.FileDir = path.Dir(ncmpath)
-	//	nf.Ext = path.Ext(ncmpath)
-	//}
-	ncmpath = path.Clean(ncmpath)
-	nf.FileName = path.Base(ncmpath)
-	nf.FileDir = path.Dir(ncmpath)
-	nf.Ext = path.Ext(ncmpath)
+	ncmpath = filepath.Clean(ncmpath)
+	nf.FileName = filepath.Base(ncmpath)
+	nf.FileDir = filepath.Dir(ncmpath)
+	nf.Ext = filepath.Ext(ncmpath)
 	nf.Path = ncmpath
 	if nf.fd, err = os.Open(nf.Path); err != nil {
 		return nil, err

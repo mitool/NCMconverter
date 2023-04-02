@@ -4,12 +4,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
-	"github.com/closetool/NCMconverter/converter"
-	"github.com/closetool/NCMconverter/ncm"
-	"github.com/closetool/NCMconverter/path"
-	"github.com/closetool/NCMconverter/tag"
+	"github.com/mitool/NCMconverter/converter"
+	"github.com/mitool/NCMconverter/ncm"
+	"github.com/mitool/NCMconverter/tag"
 	"github.com/urfave/cli/v2"
 	"github.com/xxjwxc/gowp/workpool"
 )
@@ -25,7 +25,7 @@ var pool *workpool.WorkPool
 
 func main() {
 	app := &cli.App{
-		Name:  "NCM Parser",
+		Name:  "NCMconverter",
 		Usage: "convert ncm file to mp3 or flac format",
 		Authors: []*cli.Author{
 			{Name: "closetool", Email: "4closetool3@gmail.com"},
@@ -49,7 +49,7 @@ func main() {
 			&cli.IntFlag{
 				Name:        "deepth",
 				Aliases:     []string{"d"},
-				Value:       0,
+				Value:       1,
 				Usage:       "max deepth the program will find",
 				Destination: &cmd.deepth,
 			},
@@ -85,16 +85,8 @@ func action(c *cli.Context) error {
 	}
 
 	args := c.Args().Slice()
-	//if runtime.GOOS == "windows" {
-	//	outputDir = filepath.Clean(outputDir)
-	//} else {
-	//	outputDir = path.Clean(outputDir)
-	//}
-
-	cmd.output = path.Clean(cmd.output)
+	cmd.output = filepath.Clean(cmd.output)
 	pool = workpool.New(cmd.thread)
-
-	//files := make([]strings, 0)
 	res, err := resolvePath(args)
 	if err != nil {
 		log.Printf("resolving file path failed: %v", err)
@@ -159,12 +151,7 @@ func convert(filePath, dir string) error {
 
 	fileName := strings.Split(cv.FileName, cv.Ext)
 
-	//if runtime.GOOS == "windows" {
-	//	dir = filepath.Join(dir, fileName[0]+"."+cv.MetaData.Format)
-	//} else {
-	//	dir = path.Join(dir, fileName[0]+"."+cv.MetaData.Format)
-	//}
-	dir = path.Join(dir, fileName[0]+"."+cv.MetaData.Format)
+	dir = filepath.Join(dir, fileName[0]+"."+cv.MetaData.Format)
 
 	err = writeToFile(dir, cv.MusicData)
 	if err != nil {
@@ -178,9 +165,9 @@ func convert(filePath, dir string) error {
 }
 
 func writeToFile(dst string, data []byte) error {
-	info, err := os.Stat(path.Dir(dst))
+	info, err := os.Stat(filepath.Dir(dst))
 	if err != nil && info == nil {
-		os.MkdirAll(path.Dir(dst), 0644)
+		os.MkdirAll(filepath.Dir(dst), 0644)
 	}
 	fd, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
@@ -218,13 +205,13 @@ func findNCMInDir(dir string, deepth int) ([]string, error) {
 	res := make([]string, 0)
 	for _, info := range infos {
 		if info.IsDir() {
-			tmp, _ := findNCMInDir(path.Join(dir, info.Name()), deepth-1)
+			tmp, _ := findNCMInDir(filepath.Join(dir, info.Name()), deepth-1)
 			if tmp != nil {
 				res = append(res, tmp...)
 			}
 		} else {
 			if strings.HasSuffix(info.Name(), ".ncm") {
-				res = append(res, path.Join(dir, info.Name()))
+				res = append(res, filepath.Join(dir, info.Name()))
 			}
 		}
 	}
